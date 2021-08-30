@@ -23,7 +23,6 @@ import androidx.activity.viewModels
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
  import com.assignment.facedetection.databinding.ActivityMainBinding
@@ -39,6 +38,8 @@ import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.inject.Inject
+import kotlin.concurrent.schedule
+import kotlin.coroutines.coroutineContext
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -197,7 +198,8 @@ class MainActivity : AppCompatActivity() {
     private fun initializeObserver(){
         mainViewModel.captureLiveData.observe(this,{
             when(it){
-                true-> {takePhoto()
+                true-> {
+                    takePhoto()
 
                 }
             }
@@ -261,6 +263,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 class ImageAnalyzer(private val mainViewModel: MainViewModel): ImageAnalysis.Analyzer {
+    val detector = FaceDetection.getClient(intializeFaceDetectorOptions())
 
 
         @SuppressLint("UnsafeOptInUsageError")
@@ -271,10 +274,11 @@ class ImageAnalyzer(private val mainViewModel: MainViewModel): ImageAnalysis.Ana
                     mediaImage, imageProxy.imageInfo
                         .rotationDegrees
                 )
-                val detector = FaceDetection.getClient(intializeFaceDetectorOptions())
+
                 detector.process(imageInput).addOnSuccessListener { face ->
                     Log.d("Face Detection", "Face detection success ${face}")
-                   mainViewModel.captureImage()
+                        mainViewModel.captureImage()
+
                 }
                     .addOnFailureListener { e ->
                         Log.d(
